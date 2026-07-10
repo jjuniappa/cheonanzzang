@@ -79,7 +79,8 @@ button { font: inherit; }
 }
 
 .actor.face-left .ninja { transform: scaleX(-1); }
-.actor.is-throwing { animation: throw-motion 260ms cubic-bezier(.2,.8,.25,1); }
+.actor.is-walking { animation: walk-bob 180ms steps(2, end) infinite; }
+.actor.is-using-skill { animation: skill-motion 420ms cubic-bezier(.2,.8,.25,1); }
 
 .shadow {
   position: absolute;
@@ -148,11 +149,16 @@ button { font: inherit; }
 .skill-icon { font-size: clamp(25px,7vw,34px); line-height: .75; text-shadow: 0 2px 2px rgba(0,0,0,.4); }
 .skill-name { font-size: clamp(11px,3vw,14px); font-weight: 800; line-height: 1; letter-spacing: -.04em; }
 
-@keyframes throw-motion {
-  0% { transform: translate(-50%,-50%) rotate(0); }
-  35% { transform: translate(calc(-50% - 4px),-50%) rotate(-5deg) scale(.96); }
-  62% { transform: translate(calc(-50% + 7px),-50%) rotate(7deg) scale(1.05); }
-  100% { transform: translate(-50%,-50%) rotate(0); }
+@keyframes walk-bob {
+  0%, 100% { transform: translate(-50%, -50%) translateY(0); }
+  50% { transform: translate(-50%, -50%) translateY(-4px); }
+}
+
+@keyframes skill-motion {
+  0% { transform: translate(-50%, -50%) rotate(0deg) scale(1); }
+  25% { transform: translate(calc(-50% - 5px), calc(-50% + 2px)) rotate(-8deg) scale(.94); }
+  55% { transform: translate(calc(-50% + 9px), calc(-50% - 3px)) rotate(10deg) scale(1.08); }
+  100% { transform: translate(-50%, -50%) rotate(0deg) scale(1); }
 }
 
 @media (orientation: landscape) and (max-height: 500px) {
@@ -161,5 +167,5 @@ button { font: inherit; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .actor.is-throwing { animation-duration: 1ms; }
+  .actor.is-walking, .actor.is-using-skill { animation-duration: 1ms; }
 }
