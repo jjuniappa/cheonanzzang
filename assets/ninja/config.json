@@ -1,0 +1,35 @@
+{
+  "name": "ninja",
+  "skillCooldown": 2,
+  "display": {
+    "height": 240,
+    "offsetX": 0,
+    "offsetY": 0
+  },
+  "animations": {
+    "idle": {
+      "frameCount": 4,
+      "fps": 6,
+      "loop": true,
+      "filePrefix": "idle_",
+      "numberPadding": 2,
+      "extension": "png"
+    },
+    "walk": {
+      "frameCount": 6,
+      "fps": 10,
+      "loop": true,
+      "filePrefix": "walk_",
+      "numberPadding": 2,
+      "extension": "png"
+    },
+    "skill": {
+      "frameCount": 8,
+      "fps": 14,
+      "loop": false,
+      "filePrefix": "skill_",
+      "numberPadding": 2,
+      "extension": "png"
+    }
+  }
+}
