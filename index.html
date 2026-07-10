@@ -1,4 +1,43 @@
-<!doctype html><html lang="ko"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>CheonanZZang</title><link rel="stylesheet" href="style.css"></head>
-<body><canvas id="game"></canvas><script src="game.js"></script></body></html>
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <title>천안짱 - 닌자 프로토타입</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main id="game-wrap">
+    <canvas id="game"></canvas>
+
+    <div id="status">
+      <strong>닌자</strong>
+      <span id="state-text">IDLE</span>
+    </div>
+
+    <section id="joystick" class="joystick" aria-label="이동 조이스틱">
+      <div class="joystick-base"></div>
+      <div id="joystick-knob" class="joystick-knob"></div>
+    </section>
+
+    <section class="skill-buttons">
+      <button id="skill-button" class="skill-button normal" type="button">
+        <span>일반</span>
+        <small id="skill-label">READY</small>
+      </button>
+
+      <button class="skill-button ultimate" type="button" disabled>
+        <span>궁극기</span>
+        <small>준비중</small>
+      </button>
+    </section>
+
+    <div id="notice"></div>
+    <div id="rotate-message">가로 화면으로 플레이해 주세요.</div>
+  </main>
+
+  <script src="assets/ninja/config.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
