@@ -1,26 +1,18 @@
-# Ninja Idle Mobile
+# Ninja Mobile Controller
 
-업로드한 닌자 이미지 4장을 순서대로 재생해 모바일 화면 중앙에 표시하는 정적 웹 게임 시작 프로젝트입니다.
+모바일 브라우저용 닌자 캐릭터 조작 예제입니다.
 
-## 폴더 구조
+## 기능
 
-```text
-ninja-idle-mobile/
-├─ assets/
-│  └─ ninja/
-│     ├─ 01.png
-│     ├─ 02.png
-│     ├─ 03.png
-│     └─ 04.png
-├─ index.html
-├─ styles.css
-├─ game.js
-└─ README.md
-```
+- 캐릭터는 화면 정중앙에 항상 고정
+- 왼쪽 가상 조이스틱을 누른 채 드래그하면 배경이 반대 방향으로 이동
+- 이동 중 걷기 4프레임, 정지 시 idle 4프레임 재생
+- 좌우 방향에 따라 캐릭터 반전
+- 배경 체크무늬로 이동 방향과 속도를 쉽게 확인
+- 오른쪽 아래 `수리검` 버튼 클릭 시 스킬 모션 발동
+- 수리검 투사체 효과는 향후 에셋 추가를 위해 제외
 
-## 로컬 실행
-
-간단한 로컬 서버를 사용하세요.
+## 실행
 
 ```bash
 python3 -m http.server 8000
@@ -28,31 +20,6 @@ python3 -m http.server 8000
 
 브라우저에서 `http://localhost:8000`을 엽니다.
 
-## GitHub에 업로드
+## 걷기 에셋 교체
 
-```bash
-git init
-git add .
-git commit -m "feat: add mobile centered ninja idle animation"
-git branch -M main
-git remote add origin https://github.com/사용자명/저장소명.git
-git push -u origin main
-```
-
-## GitHub Pages 배포
-
-저장소의 **Settings → Pages**에서 다음을 선택합니다.
-
-- Source: `Deploy from a branch`
-- Branch: `main`
-- Folder: `/ (root)`
-
-## 조절 가능한 값
-
-`game.js`의 아래 값을 변경하면 프레임 속도가 바뀝니다.
-
-```js
-const FRAME_DURATION = 140;
-```
-
-숫자가 작을수록 빠르게 재생됩니다.
+현재 `assets/ninja/walk/01.png` ~ `04.png`에는 임시 프레임이 들어 있습니다. 실제 걷기 이미지를 같은 파일명으로 덮어쓰면 코드 수정 없이 적용됩니다.
