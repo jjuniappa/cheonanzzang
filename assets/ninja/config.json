@@ -2,7 +2,7 @@
   "name": "ninja",
   "skillCooldown": 2,
   "display": {
-    "height": 240,
+    "height": 170,
     "offsetX": 0,
     "offsetY": 0
   },
