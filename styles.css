@@ -1,0 +1,90 @@
+:root {
+  color-scheme: dark;
+  --bg-top: #1f2937;
+  --bg-bottom: #0b1020;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: var(--bg-bottom);
+}
+
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  touch-action: manipulation;
+  user-select: none;
+}
+
+.game {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  min-height: 100svh;
+  padding:
+    max(16px, env(safe-area-inset-top))
+    max(16px, env(safe-area-inset-right))
+    max(16px, env(safe-area-inset-bottom))
+    max(16px, env(safe-area-inset-left));
+  background:
+    radial-gradient(circle at 50% 42%, rgba(255, 255, 255, 0.08), transparent 30%),
+    linear-gradient(180deg, var(--bg-top), var(--bg-bottom));
+}
+
+.stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: min(72vw, 360px);
+  aspect-ratio: 1 / 1;
+}
+
+.ninja {
+  position: relative;
+  z-index: 2;
+  width: clamp(154px, 42vw, 246px);
+  height: auto;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  transform: translateZ(0);
+  filter: drop-shadow(0 10px 8px rgba(0, 0, 0, 0.28));
+}
+
+.shadow {
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  top: calc(50% + clamp(58px, 16vw, 92px));
+  width: clamp(100px, 28vw, 170px);
+  height: clamp(18px, 5vw, 28px);
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.32);
+  filter: blur(5px);
+  transform: translateX(-50%);
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .ninja {
+    width: min(34vh, 190px);
+  }
+
+  .shadow {
+    top: calc(50% + 64px);
+    width: 120px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ninja {
+    transform: none;
+  }
+}
