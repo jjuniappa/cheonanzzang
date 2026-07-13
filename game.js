@@ -1,6 +1,6 @@
 "use strict";
 
-const CONFIG={PLAYER_SIZE:96,TILE_SIZE:64,MOVE_SPEED:220,IDLE_FRAME_MS:150,WALK_FRAME_MS:100,SKILL_FRAME_MS:90,SHURIKEN_FRAME_MS:55,SHURIKEN_SPEED:720,SHURIKEN_RANGE_TILES:5,SHURIKEN_SIZE:34,ULTIMATE_FRAME_MS:110,ULTIMATE_CHARGE_HOLD_MS:720,ULTIMATE_EFFECT_FRAME_MS:90,ULTIMATE_SLASH_FRAME_MS:70,ULTIMATE_COOLDOWN_MS:0,ULTIMATE_RANGE_TILES:2.5,ULTIMATE_DAMAGE:3,ULTIMATE_EFFECT_SIZE:360,ENEMY_SIZE:72};
+const CONFIG={PLAYER_SIZE:96,TILE_SIZE:64,MOVE_SPEED:220,IDLE_FRAME_MS:150,WALK_FRAME_MS:100,SKILL_FRAME_MS:90,SHURIKEN_FRAME_MS:55,SHURIKEN_SPEED:720,SHURIKEN_RANGE_TILES:5,SHURIKEN_SIZE:34,ULTIMATE_FRAME_MS:110,ULTIMATE_CHARGE_HOLD_MS:720,ULTIMATE_EFFECT_FRAME_MS:90,ULTIMATE_SLASH_FRAME_MS:70,ULTIMATE_COOLDOWN_MS:0,ULTIMATE_RANGE_TILES:2.5,ULTIMATE_DAMAGE:3,ULTIMATE_EFFECT_SIZE:360,ENERGY_MAX:20,SHURIKEN_ENERGY_COST:1,ULTIMATE_ENERGY_COST:5,ULTIMATE_GAUGE_MAX:100,ULTIMATE_GAUGE_PER_HIT:10,ENERGY_BAR_WIDTH:96,ENERGY_BAR_HEIGHT:8,ENERGY_BAR_OFFSET_Y:66,ULTIMATE_GAUGE_RADIUS:18,ULTIMATE_GAUGE_OFFSET_Y:94,ENEMY_SIZE:72};
 const paths=(dir,prefix,count)=>Array.from({length:count},(_,i)=>`${dir}/${prefix}${String(i+1).padStart(2,"0")}.png`);
 const ASSETS={
   idle:paths("assets/ninja/idle","idle",4),
@@ -28,7 +28,7 @@ const ASSETS={
 };
 
 const canvas=document.querySelector("#game"),ctx=canvas.getContext("2d"),joystick=document.querySelector("#joystick"),knob=document.querySelector("#joystick-knob"),skillButton=document.querySelector("#skill-button"),ultimateButton=document.querySelector("#ultimate-button"),status=document.querySelector("#status");
-const state={w:innerWidth,h:innerHeight,dpr:1,last:performance.now(),player:{x:0,y:0,fx:1,fy:0,moving:false,skillAt:-1e9,mode:"normal",ultimateAt:-1e9,ultimateHit:false},input:{x:0,y:0,id:null},frames:{},pending:[],shots:[],enemies:[{x:128,y:0,energy:5,max:5,flash:0},{x:0,y:128,energy:5,max:5,flash:0}]};
+const state={w:innerWidth,h:innerHeight,dpr:1,last:performance.now(),player:{x:0,y:0,fx:1,fy:0,moving:false,skillAt:-1e9,mode:"normal",ultimateAt:-1e9,ultimateHit:false,energy:CONFIG.ENERGY_MAX,maxEnergy:CONFIG.ENERGY_MAX,ultimateGauge:0,maxUltimateGauge:CONFIG.ULTIMATE_GAUGE_MAX},input:{x:0,y:0,id:null},frames:{},pending:[],shots:[],enemies:[{x:128,y:0,energy:5,max:5,flash:0},{x:0,y:128,energy:5,max:5,flash:0}]};
 
 function resize(){state.w=innerWidth;state.h=innerHeight;state.dpr=Math.min(devicePixelRatio||1,2);canvas.width=state.w*state.dpr;canvas.height=state.h*state.dpr;canvas.style.width=state.w+"px";canvas.style.height=state.h+"px";ctx.setTransform(state.dpr,0,0,state.dpr,0,0);ctx.imageSmoothingEnabled=false}addEventListener("resize",resize);resize();
 function findVisibleBounds(image){
@@ -239,9 +239,96 @@ function drawUltimate(now){
     }
   }
 }
-function fire(now){if(state.player.mode==="ultimate")return;const l=Math.hypot(state.player.fx,state.player.fy)||1;state.player.skillAt=now;state.pending.push({at:now+CONFIG.SKILL_FRAME_MS,dx:state.player.fx/l,dy:state.player.fy/l})}
+
+function drawPlayerEnergyBar(){
+  const width=CONFIG.ENERGY_BAR_WIDTH;
+  const height=CONFIG.ENERGY_BAR_HEIGHT;
+  const x=state.w/2-width/2;
+  const y=state.h/2-CONFIG.ENERGY_BAR_OFFSET_Y;
+  const ratio=Math.max(0,Math.min(1,state.player.energy/state.player.maxEnergy));
+  const color=ratio>.5?"#38d06f":ratio>.25?"#f2c94c":"#ef5350";
+
+  ctx.save();
+  ctx.fillStyle="rgba(0,0,0,.72)";
+  ctx.fillRect(x-2,y-2,width+4,height+4);
+  ctx.fillStyle="#252b35";
+  ctx.fillRect(x,y,width,height);
+  ctx.fillStyle=color;
+  ctx.fillRect(x,y,width*ratio,height);
+  ctx.strokeStyle="rgba(255,255,255,.35)";
+  ctx.strokeRect(x+.5,y+.5,width-1,height-1);
+  ctx.restore();
+}
+
+function drawUltimateGauge(){
+  const x=state.w/2;
+  const y=state.h/2-CONFIG.ULTIMATE_GAUGE_OFFSET_Y;
+  const r=CONFIG.ULTIMATE_GAUGE_RADIUS;
+  const ratio=Math.max(0,Math.min(1,state.player.ultimateGauge/state.player.maxUltimateGauge));
+  const ready=ratio>=1;
+
+  ctx.save();
+  ctx.lineCap="round";
+  ctx.beginPath();
+  ctx.arc(x,y,r,0,Math.PI*2);
+  ctx.fillStyle="rgba(0,0,0,.58)";
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.arc(x,y,r-3,-Math.PI/2,-Math.PI/2+Math.PI*2*ratio);
+  ctx.strokeStyle=ready?"#ff6464":"#d64545";
+  ctx.lineWidth=6;
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.arc(x,y,r,0,Math.PI*2);
+  ctx.strokeStyle=ready?"#ffaaaa":"rgba(255,255,255,.3)";
+  ctx.lineWidth=2;
+  ctx.stroke();
+
+  ctx.fillStyle="#fff";
+  ctx.font="bold 9px system-ui";
+  ctx.textAlign="center";
+  ctx.textBaseline="middle";
+  ctx.fillText("ULT",x,y+1);
+
+  if(ready){
+    ctx.globalAlpha=.35+.25*Math.sin(performance.now()/90);
+    ctx.beginPath();
+    ctx.arc(x,y,r+5,0,Math.PI*2);
+    ctx.strokeStyle="#ff4b4b";
+    ctx.lineWidth=3;
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function updateSkillButtons(){
+  skillButton.disabled=
+    state.player.mode==="ultimate"||
+    state.player.energy<CONFIG.SHURIKEN_ENERGY_COST;
+
+  const ready=
+    state.player.ultimateGauge>=state.player.maxUltimateGauge &&
+    state.player.energy>=CONFIG.ULTIMATE_ENERGY_COST;
+
+  ultimateButton.disabled=state.player.mode==="ultimate"||!ready;
+
+  if(state.player.mode==="ultimate")ultimateButton.textContent="발동 중";
+  else if(state.player.ultimateGauge<state.player.maxUltimateGauge)
+    ultimateButton.textContent=Math.floor(state.player.ultimateGauge)+"%";
+  else if(state.player.energy<CONFIG.ULTIMATE_ENERGY_COST)
+    ultimateButton.textContent="에너지 부족";
+  else ultimateButton.textContent="궁극기";
+}
+
+function fire(now){if(state.player.mode==="ultimate")return;if(state.player.energy<CONFIG.SHURIKEN_ENERGY_COST)return;state.player.energy-=CONFIG.SHURIKEN_ENERGY_COST;const l=Math.hypot(state.player.fx,state.player.fy)||1;state.player.skillAt=now;state.pending.push({at:now+CONFIG.SKILL_FRAME_MS,dx:state.player.fx/l,dy:state.player.fy/l})}
 function ultimate(now){
   if(state.player.mode==="ultimate")return;
+  if(state.player.ultimateGauge<state.player.maxUltimateGauge)return;
+  if(state.player.energy<CONFIG.ULTIMATE_ENERGY_COST)return;
+  state.player.energy-=CONFIG.ULTIMATE_ENERGY_COST;
+  state.player.ultimateGauge=0;
 
   state.player.mode="ultimate";
   state.player.ultimateAt=now;
@@ -293,7 +380,6 @@ function update(now,dt){if(state.player.mode!=="ultimate"){const l=Math.hypot(st
     ultimateButton.textContent="궁극기";
   }
 }
-ultimateButton.disabled=state.player.mode==="ultimate";
-ultimateButton.textContent=state.player.mode==="ultimate"?"발동 중":"궁극기";
+updateSkillButtons();
 }
-function loop(now){const dt=Math.min((now-state.last)/1000,.05);state.last=now;update(now,dt);ctx.clearRect(0,0,state.w,state.h);bg();drawEnemies(now);drawShots(now);drawPlayer(now);drawUltimate(now);requestAnimationFrame(loop)}loadAll().finally(()=>requestAnimationFrame(loop));
+function loop(now){const dt=Math.min((now-state.last)/1000,.05);state.last=now;update(now,dt);ctx.clearRect(0,0,state.w,state.h);bg();drawEnemies(now);drawShots(now);drawPlayer(now);drawPlayerEnergyBar();drawUltimateGauge();drawUltimate(now);requestAnimationFrame(loop)}loadAll().finally(()=>requestAnimationFrame(loop));
