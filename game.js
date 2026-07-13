@@ -296,4 +296,4 @@ function update(now,dt){if(state.player.mode!=="ultimate"){const l=Math.hypot(st
 ultimateButton.disabled=state.player.mode==="ultimate";
 ultimateButton.textContent=state.player.mode==="ultimate"?"발동 중":"궁극기";
 }
-function loop(now){const dt=Math.min((now-state.last)/1000,.05);state.last=now;update(now,dt);ctx.clearRect(0,0,state.w,state.h);bg();drawEnemies(now);drawShots(now);drawUltimate(now);drawPlayer(now);requestAnimationFrame(loop)}loadAll().finally(()=>requestAnimationFrame(loop));
+function loop(now){const dt=Math.min((now-state.last)/1000,.05);state.last=now;update(now,dt);ctx.clearRect(0,0,state.w,state.h);bg();drawEnemies(now);drawShots(now);drawPlayer(now);drawUltimate(now);requestAnimationFrame(loop)}loadAll().finally(()=>requestAnimationFrame(loop));

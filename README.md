@@ -143,3 +143,18 @@ assets/effects/ultimateSlash/ultimateSlash01.png
 
 각각 01~04까지 넣으면 됩니다.
 화면 상단에 `충전 4 · 참격 4`가 보이면 정상 로드된 것입니다.
+
+
+## 궁극기 이펙트 레이어
+
+렌더 순서를 아래처럼 변경했습니다.
+
+```text
+배경
+적
+수리검
+캐릭터
+ultimateCharge / ultimateSlash
+```
+
+따라서 궁극기 충전 및 참격 이펙트가 캐릭터보다 위 레이어에 표시됩니다.
