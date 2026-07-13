@@ -1,0 +1,7 @@
+{
+  "name": "ninja-game-auto-assets",
+  "private": true,
+  "scripts": {
+    "assets": "node scripts/generate-assets-manifest.mjs"
+  }
+}
