@@ -1,0 +1,78 @@
+* {
+  box-sizing: border-box;
+  touch-action: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #111722;
+}
+
+#game {
+  position: fixed;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+#joystick {
+  position: fixed;
+  left: 22px;
+  top: 50%;
+  width: 120px;
+  height: 120px;
+  transform: translateY(-50%);
+  border: 2px solid rgba(255,255,255,.35);
+  border-radius: 50%;
+  background: rgba(0,0,0,.28);
+}
+
+#joystick-knob {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 54px;
+  height: 54px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: rgba(255,255,255,.82);
+}
+
+#skill-button {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  width: 92px;
+  height: 92px;
+  border: 2px solid rgba(255,255,255,.45);
+  border-radius: 50%;
+  background: #283448;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+#skill-button:active {
+  transform: scale(.93);
+}
+
+#status {
+  position: fixed;
+  left: 50%;
+  top: 12px;
+  transform: translateX(-50%);
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgba(0,0,0,.5);
+  color: #fff;
+  font: 12px/1.2 system-ui, sans-serif;
+  white-space: nowrap;
+}
+
+#ultimate-button{position:fixed;right:34px;bottom:132px;width:74px;height:74px;border:2px solid #ffffff73;border-radius:50%;background:#7b1f2b;color:#fff;font-size:16px;font-weight:800}#ultimate-button:active{transform:scale(.93)}#ultimate-button:disabled{opacity:.45}
