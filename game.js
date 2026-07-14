@@ -434,9 +434,26 @@ function useBasicAttack(attacker, now) {
     ? state.fighters.enemy
     : state.fighters.player;
 
-  const direction = directionTo(attacker, target);
-  attacker.facingX = direction.x;
-  attacker.facingY = direction.y;
+  let direction;
+
+  if (attacker.isPlayer) {
+    // 플레이어 공격은 자동 조준하지 않습니다.
+    // 마지막으로 이동한 방향 또는 현재 바라보는 방향으로 발사합니다.
+    const length = Math.hypot(
+      attacker.facingX,
+      attacker.facingY
+    ) || 1;
+
+    direction = {
+      x: attacker.facingX / length,
+      y: attacker.facingY / length
+    };
+  } else {
+    // AI 군인은 플레이어를 향해 조준합니다.
+    direction = directionTo(attacker, target);
+    attacker.facingX = direction.x;
+    attacker.facingY = direction.y;
+  }
 
   const delay = CONFIG.ATTACK_FRAME_MS;
 
