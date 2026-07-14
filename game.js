@@ -179,12 +179,83 @@ function resize() {
 addEventListener("resize", resize);
 resize();
 
+function findVisibleBounds(image) {
+  const tempCanvas = document.createElement("canvas");
+  tempCanvas.width = image.naturalWidth || image.width;
+  tempCanvas.height = image.naturalHeight || image.height;
+
+  const tempCtx = tempCanvas.getContext("2d", { willReadFrequently: true });
+  tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
+  tempCtx.drawImage(image, 0, 0);
+
+  const data = tempCtx.getImageData(
+    0,
+    0,
+    tempCanvas.width,
+    tempCanvas.height
+  ).data;
+
+  let minX = tempCanvas.width;
+  let minY = tempCanvas.height;
+  let maxX = -1;
+  let maxY = -1;
+
+  for (let y = 0; y < tempCanvas.height; y += 1) {
+    for (let x = 0; x < tempCanvas.width; x += 1) {
+      const alpha = data[(y * tempCanvas.width + x) * 4 + 3];
+
+      if (alpha > 8) {
+        minX = Math.min(minX, x);
+        minY = Math.min(minY, y);
+        maxX = Math.max(maxX, x);
+        maxY = Math.max(maxY, y);
+      }
+    }
+  }
+
+  if (maxX < minX || maxY < minY) {
+    return {
+      x: 0,
+      y: 0,
+      width: tempCanvas.width,
+      height: tempCanvas.height
+    };
+  }
+
+  return {
+    x: minX,
+    y: minY,
+    width: maxX - minX + 1,
+    height: maxY - minY + 1
+  };
+}
+
 function loadImage(path) {
   return new Promise(resolve => {
     const image = new Image();
-    image.onload = () => resolve(image);
-    image.onerror = () => resolve(null);
-    image.src = `${path}?v=1`;
+
+    image.onload = () => {
+      try {
+        image.visibleBounds = findVisibleBounds(image);
+      } catch (error) {
+        console.warn("투명 여백 계산 실패:", path, error);
+        image.visibleBounds = {
+          x: 0,
+          y: 0,
+          width: image.naturalWidth || image.width,
+          height: image.naturalHeight || image.height
+        };
+      }
+
+      resolve(image);
+    };
+
+    image.onerror = () => {
+      console.error("에셋 로드 실패:", path);
+      resolve(null);
+    };
+
+    image.src = `${path}?v=2`;
   });
 }
 
@@ -208,7 +279,9 @@ async function loadAllAssets() {
 
   status.textContent =
     `닌자 ${state.frames.ninja.idle.length}/${state.frames.ninja.attack.length} · ` +
-    `군인 ${state.frames.soldier.idle.length}/${state.frames.soldier.attack.length}`;
+    `군인 ${state.frames.soldier.idle.length}/${state.frames.soldier.attack.length} · ` +
+    `궁극기충전 ${state.frames.ultimateCharge.length} · ` +
+    `궁극기참격 ${state.frames.ultimateSlash.length}`;
 }
 
 function frameAt(frames, elapsed, frameMs, loop = true) {
@@ -254,20 +327,39 @@ function drawBackground() {
   }
 }
 
-function drawSprite(image, x, y, size, flipX = false, angle = 0) {
-  const scale = Math.min(size / image.width, size / image.height);
-  const width = image.width * scale;
-  const height = image.height * scale;
+function drawSprite(image, x, y, size, flipX = false, angle = 0, alpha = 1) {
+  const bounds = image.visibleBounds || {
+    x: 0,
+    y: 0,
+    width: image.naturalWidth || image.width,
+    height: image.naturalHeight || image.height
+  };
+
+  const scale = Math.min(size / bounds.width, size / bounds.height);
+  const width = bounds.width * scale;
+  const height = bounds.height * scale;
 
   ctx.save();
   ctx.translate(x, y);
   ctx.rotate(angle);
+  ctx.globalAlpha = alpha;
 
   if (flipX) {
     ctx.scale(-1, 1);
   }
 
-  ctx.drawImage(image, -width / 2, -height / 2, width, height);
+  ctx.drawImage(
+    image,
+    bounds.x,
+    bounds.y,
+    bounds.width,
+    bounds.height,
+    -width / 2,
+    -height / 2,
+    width,
+    height
+  );
+
   ctx.restore();
 }
 
@@ -645,23 +737,37 @@ function updateProjectiles(deltaSeconds) {
   );
 }
 
-function updateUltimate(fighter, now) {
-  if (fighter.mode !== "ultimate") return;
-
-  const elapsed = now - fighter.ultimateStartedAt;
+function getUltimateTimeline(fighter) {
+  const frameMs = CONFIG.ULTIMATE_FRAME_MS;
   const frameCount = Math.max(
     8,
     state.frames[fighter.type].ultimate.length || 8
   );
 
-  const characterDuration = frameCount * CONFIG.ULTIMATE_FRAME_MS;
-  const slashDuration =
-    Math.max(1, state.frames.ultimateSlash.length || 4) *
-    CONFIG.EFFECT_FRAME_MS;
+  const characterDuration = frameCount * frameMs;
+  const slashFrameCount = Math.max(
+    1,
+    state.frames.ultimateSlash.length || 4
+  );
+  const slashDuration = slashFrameCount * CONFIG.EFFECT_FRAME_MS;
 
+  return {
+    characterDuration,
+    slashDuration,
+    totalDuration: characterDuration + slashDuration
+  };
+}
+
+function updateUltimate(fighter, now) {
+  if (fighter.mode !== "ultimate") return;
+
+  const elapsed = now - fighter.ultimateStartedAt;
+  const timeline = getUltimateTimeline(fighter);
+
+  // ultimate08 종료 직후 데미지 5 적용
   if (
     !fighter.ultimateHitApplied &&
-    elapsed >= characterDuration
+    elapsed >= timeline.characterDuration
   ) {
     const target = fighter.isPlayer
       ? state.fighters.enemy
@@ -671,7 +777,7 @@ function updateUltimate(fighter, now) {
     fighter.ultimateHitApplied = true;
   }
 
-  if (elapsed >= characterDuration + slashDuration) {
+  if (elapsed >= timeline.totalDuration) {
     fighter.mode = "normal";
 
     if (fighter.isPlayer) {
@@ -726,14 +832,9 @@ function drawUltimateEffects(fighter, now) {
     : worldToScreen(fighter.x, fighter.y);
 
   const elapsed = now - fighter.ultimateStartedAt;
-  const frameCount = Math.max(
-    8,
-    state.frames[fighter.type].ultimate.length || 8
-  );
+  const timeline = getUltimateTimeline(fighter);
 
-  const characterDuration = frameCount * CONFIG.ULTIMATE_FRAME_MS;
-
-  if (elapsed < characterDuration) {
+  if (elapsed < timeline.characterDuration) {
     const charge = frameAt(
       state.frames.ultimateCharge,
       elapsed,
@@ -742,18 +843,35 @@ function drawUltimateEffects(fighter, now) {
     );
 
     if (charge) {
-      drawSprite(charge, screen.x, screen.y, 220);
+      drawSprite(
+        charge,
+        screen.x,
+        screen.y,
+        220,
+        false,
+        0,
+        0.8
+      );
     }
   } else {
+    const slashElapsed = elapsed - timeline.characterDuration;
     const slash = frameAt(
       state.frames.ultimateSlash,
-      elapsed - characterDuration,
+      slashElapsed,
       CONFIG.EFFECT_FRAME_MS,
       false
     );
 
     if (slash) {
-      drawSprite(slash, screen.x, screen.y, 280);
+      drawSprite(
+        slash,
+        screen.x,
+        screen.y,
+        270,
+        false,
+        0,
+        0.95
+      );
     }
   }
 }
