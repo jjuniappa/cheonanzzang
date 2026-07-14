@@ -43,7 +43,7 @@ const CHARACTER_CONFIG = {
     projectileSpeed: 900,
     projectileRangeTiles: 5,
     basicDamage: 1,
-    attackCooldownMs: 180
+    attackCooldownMs: 260
   },
 
   soldier: {
@@ -51,7 +51,7 @@ const CHARACTER_CONFIG = {
     projectileSpeed: 800,
     projectileRangeTiles: 7,
     basicDamage: 1,
-    attackCooldownMs: 180
+    attackCooldownMs: 260
   }
 };
 
@@ -1458,12 +1458,17 @@ function loop(now) {
     ctx.clearRect(0, 0, state.width, state.height);
     drawBackground();
 
+    // 연기 → 캐릭터 → 일반 투사체/미사일 → 궁극기/폭발 순서로 그립니다.
+    drawMissileSmoke(now);
+
     drawFighter(state.fighters.enemy, now);
     drawFighter(state.fighters.player, now);
     drawProjectiles(now);
+    drawMissiles(now);
 
     drawUltimateEffects(state.fighters.enemy, now);
     drawUltimateEffects(state.fighters.player, now);
+    drawExplosions(now);
   }
 
   requestAnimationFrame(loop);
