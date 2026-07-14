@@ -2,7 +2,7 @@
 
 const CONFIG = {
   TILE_SIZE: 64,
-  PLAYER_SIZE: 96,
+  PLAYER_SIZE: 100,
 
   MAX_ENERGY: 20,
   BASIC_DAMAGE: 1,
