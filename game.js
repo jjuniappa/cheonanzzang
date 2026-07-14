@@ -43,7 +43,7 @@ const CHARACTER_CONFIG = {
     projectileSpeed: 900,
     projectileRangeTiles: 5,
     basicDamage: 1,
-    attackCooldownMs: 260
+    attackCooldownMs: 180
   },
 
   soldier: {
@@ -51,7 +51,7 @@ const CHARACTER_CONFIG = {
     projectileSpeed: 800,
     projectileRangeTiles: 7,
     basicDamage: 1,
-    attackCooldownMs: 260
+    attackCooldownMs: 180
   }
 };
 
