@@ -40,7 +40,7 @@ const CONFIG = {
 const CHARACTER_CONFIG = {
   ninja: {
     moveSpeed: 240,
-    projectileSpeed: 800,
+    projectileSpeed: 900,
     projectileRangeTiles: 5,
     basicDamage: 1,
     attackCooldownMs: 260
@@ -48,10 +48,10 @@ const CHARACTER_CONFIG = {
 
   soldier: {
     moveSpeed: 180,
-    projectileSpeed: 900,
+    projectileSpeed: 800,
     projectileRangeTiles: 7,
     basicDamage: 1,
-    attackCooldownMs: 420
+    attackCooldownMs: 260
   }
 };
 
