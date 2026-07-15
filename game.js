@@ -4,7 +4,7 @@ const CONFIG = {
   TILE_SIZE: 64,
   PLAYER_SIZE: 100,
 
-  MAX_ENERGY: 20,
+  MAX_ENERGY: 50,
   BASIC_DAMAGE: 1,
   ULTIMATE_DAMAGE: 5,
   NINJA_ULTIMATE_RADIUS: 60,
@@ -1329,7 +1329,7 @@ function drawUltimateEffects(fighter, now) {
     // 로켓포 상단 부근. 화면 기준으로 2px 왼쪽 이동합니다.
     // 캐릭터가 왼쪽을 바라보면 launch 에셋도 좌우 반전합니다.
     const facingLeft = fighter.facingX < 0;
-    const launchX = screen.x + (facingLeft ? -11 : 11);
+    const launchX = screen.x + (facingLeft ? -9 : 11);
     const launchY = screen.y - 72;
 
     if (launchImage) {
