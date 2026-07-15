@@ -7,6 +7,8 @@ const CONFIG = {
   MAX_ENERGY: 20,
   BASIC_DAMAGE: 1,
   ULTIMATE_DAMAGE: 5,
+  NINJA_ULTIMATE_RADIUS: 60,
+  NINJA_ULTIMATE_EFFECT_SIZE: 180,
 
   ULTIMATE_GAUGE_MAX: 100,
   ULTIMATE_GAIN_ON_HIT: 10,
@@ -56,7 +58,7 @@ const CHARACTER_CONFIG = {
     projectileSpeed: 800,
     projectileRangeTiles: 5,
     basicDamage: 1,
-    attackCooldownMs: 300
+    attackCooldownMs: 260
   }
 };
 
@@ -1329,11 +1331,18 @@ function updateUltimate(fighter, now) {
       ? state.fighters.enemy
       : state.fighters.player;
 
-    applyDamage(
-      fighter,
-      target,
-      CONFIG.ULTIMATE_DAMAGE
+    const distance = Math.hypot(
+      target.x - fighter.x,
+      target.y - fighter.y
     );
+
+    if (distance <= CONFIG.NINJA_ULTIMATE_RADIUS) {
+      applyDamage(
+        fighter,
+        target,
+        CONFIG.ULTIMATE_DAMAGE
+      );
+    }
 
     fighter.ultimateHitApplied = true;
   }
@@ -1470,7 +1479,7 @@ function drawUltimateEffects(fighter, now) {
         slash,
         screen.x,
         screen.y,
-        270,
+        CONFIG.NINJA_ULTIMATE_EFFECT_SIZE,
         false,
         0,
         0.95
