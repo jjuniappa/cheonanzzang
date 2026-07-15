@@ -1329,8 +1329,8 @@ function drawUltimateEffects(fighter, now) {
     // 로켓포 상단 부근. 화면 기준으로 2px 왼쪽 이동합니다.
     // 캐릭터가 왼쪽을 바라보면 launch 에셋도 좌우 반전합니다.
     const facingLeft = fighter.facingX < 0;
-    const launchX = screen.x + (facingLeft ? -5 : 11);
-    const launchY = screen.y - 60;
+    const launchX = screen.x + (facingLeft ? 5 : 11);
+    const launchY = screen.y - 85;
 
     if (launchImage) {
       drawSprite(
