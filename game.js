@@ -1407,7 +1407,7 @@ function drawUltimateEffects(fighter, now) {
     );
 
     // 로켓포 상단 부근. 에셋 방향에 따라 이 두 오프셋만 조정하면 됩니다.
-    const launchX = screen.x + (fighter.facingX < 0 ? -15 : 13);
+    const launchX = screen.x + (fighter.facingX < 0 ? -11 : 13);
     const launchY = screen.y - 72;
 
     if (launchImage) {
