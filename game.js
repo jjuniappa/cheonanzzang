@@ -1330,7 +1330,7 @@ function drawUltimateEffects(fighter, now) {
     // 캐릭터가 왼쪽을 바라보면 launch 에셋도 좌우 반전합니다.
     const facingLeft = fighter.facingX < 0;
     const launchX = screen.x + (facingLeft ? 20 : 11);
-    const launchY = screen.y - 100;
+    const launchY = screen.y - 95;
 
     if (launchImage) {
       drawSprite(
