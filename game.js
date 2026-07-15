@@ -24,8 +24,6 @@ const CONFIG = {
   MISSILE_SPEED: 500,
   MISSILE_SIZE: 58,
   MISSILE_EXPLOSION_RADIUS_TILES: 2,
-  MISSILE_SMOKE_INTERVAL_MS: 55,
-  MISSILE_SMOKE_SIZE: 42,
   EXPLOSION_SIZE: 190,
   EXPLOSION_FRAME_MS: 85,
 
@@ -114,11 +112,6 @@ const ASSETS = {
     4
   ),
 
-  missileSmoke: fixedPaths(
-    "assets/effects/missileSmoke",
-    "smoke",
-    4
-  ),
 
   explosion: fixedPaths(
     "assets/effects/explosion",
@@ -184,13 +177,11 @@ const state = {
     ultimateSlash: [],
     missileLaunch: [],
     missile: [],
-    missileSmoke: [],
     explosion: []
   },
 
   projectiles: [],
   missiles: [],
-  smokeParticles: [],
   explosions: [],
   effects: []
 };
@@ -354,14 +345,12 @@ async function loadAllAssets() {
   state.frames.ultimateSlash = await loadFrames(ASSETS.ultimateSlash);
   state.frames.missileLaunch = await loadFrames(ASSETS.missileLaunch);
   state.frames.missile = await loadFrames(ASSETS.missile);
-  state.frames.missileSmoke = await loadFrames(ASSETS.missileSmoke);
   state.frames.explosion = await loadFrames(ASSETS.explosion);
 
   status.textContent =
     `닌자 ${state.frames.ninja.idle.length}/${state.frames.ninja.attack.length} · ` +
     `군인 ${state.frames.soldier.idle.length}/${state.frames.soldier.attack.length} · ` +
     `미사일 ${state.frames.missile.length} · ` +
-    `연기 ${state.frames.missileSmoke.length} · ` +
     `폭발 ${state.frames.explosion.length}`;
 }
 
@@ -833,21 +822,10 @@ function spawnSoldierMissileBarrage(attacker, now) {
       directionY: 1,
       spawnAt,
       createdAt: spawnAt,
-      lastSmokeAt: spawnAt,
       active: false,
       isUltimateBarrage: true,
       dead: false
     });
-  });
-}
-
-function spawnMissileSmoke(missile, now) {
-  state.smokeParticles.push({
-    x: missile.x - missile.directionX * 24,
-    y: missile.y - missile.directionY * 24,
-    createdAt: now,
-    angle: Math.atan2(missile.directionY, missile.directionX),
-    dead: false
   });
 }
 
@@ -868,7 +846,6 @@ function updateMissiles(now, deltaSeconds) {
       if (now < missile.spawnAt) continue;
       missile.active = true;
       missile.createdAt = now;
-      missile.lastSmokeAt = now;
     }
 
     const dx = missile.targetX - missile.x;
@@ -876,13 +853,6 @@ function updateMissiles(now, deltaSeconds) {
     const distance = Math.hypot(dx, dy);
     const moveDistance = CONFIG.MISSILE_SPEED * deltaSeconds;
 
-    if (
-      now - missile.lastSmokeAt >=
-      CONFIG.MISSILE_SMOKE_INTERVAL_MS
-    ) {
-      spawnMissileSmoke(missile, now);
-      missile.lastSmokeAt = now;
-    }
 
     if (distance <= moveDistance + 10) {
       missile.x = missile.targetX;
@@ -913,22 +883,6 @@ function updateMissiles(now, deltaSeconds) {
 
   state.missiles = state.missiles.filter(
     missile => !missile.dead
-  );
-}
-
-function updateSmokeParticles(now) {
-  const duration =
-    Math.max(1, state.frames.missileSmoke.length || 4) *
-    CONFIG.EFFECT_FRAME_MS;
-
-  for (const smoke of state.smokeParticles) {
-    if (now - smoke.createdAt >= duration) {
-      smoke.dead = true;
-    }
-  }
-
-  state.smokeParticles = state.smokeParticles.filter(
-    smoke => !smoke.dead
   );
 }
 
@@ -973,49 +927,6 @@ function updateExplosions(now) {
   state.explosions = state.explosions.filter(
     explosion => !explosion.dead
   );
-}
-
-function drawMissileSmoke(now) {
-  for (const smoke of state.smokeParticles) {
-    const screen = worldToScreen(smoke.x, smoke.y);
-    const image = frameAt(
-      state.frames.missileSmoke,
-      now - smoke.createdAt,
-      CONFIG.EFFECT_FRAME_MS,
-      false
-    );
-
-    if (image) {
-      drawSprite(
-        image,
-        screen.x,
-        screen.y,
-        CONFIG.MISSILE_SMOKE_SIZE,
-        false,
-        smoke.angle,
-        0.72
-      );
-    } else {
-      const progress = Math.min(
-        1,
-        (now - smoke.createdAt) / 320
-      );
-
-      ctx.save();
-      ctx.globalAlpha = (1 - progress) * 0.45;
-      ctx.fillStyle = "#c7cbd1";
-      ctx.beginPath();
-      ctx.arc(
-        screen.x,
-        screen.y,
-        8 + progress * 10,
-        0,
-        Math.PI * 2
-      );
-      ctx.fill();
-      ctx.restore();
-    }
-  }
 }
 
 function drawMissiles(now) {
@@ -1418,7 +1329,7 @@ function drawUltimateEffects(fighter, now) {
     // 로켓포 상단 부근. 화면 기준으로 2px 왼쪽 이동합니다.
     // 캐릭터가 왼쪽을 바라보면 launch 에셋도 좌우 반전합니다.
     const facingLeft = fighter.facingX < 0;
-    const launchX = screen.x + (facingLeft ? -11 : 11);
+    const launchX = screen.x + (facingLeft ? -15 : 11);
     const launchY = screen.y - 72;
 
     if (launchImage) {
@@ -1596,7 +1507,6 @@ function startBattle() {
 
   state.projectiles = [];
   state.missiles = [];
-  state.smokeParticles = [];
   state.explosions = [];
   state.effects = [];
   state.battleRunning = true;
@@ -1664,7 +1574,6 @@ function loop(now) {
     updatePendingShots(now);
     updateProjectiles(deltaSeconds);
     updateMissiles(now, deltaSeconds);
-    updateSmokeParticles(now);
     updateExplosions(now);
 
     updateUltimate(state.fighters.player, now);
@@ -1675,9 +1584,7 @@ function loop(now) {
     ctx.clearRect(0, 0, state.width, state.height);
     drawBackground();
 
-    // 연기 → 캐릭터 → 일반 투사체/미사일 → 궁극기/폭발 순서로 그립니다.
-    drawMissileSmoke(now);
-
+    // 캐릭터 → 일반 투사체/미사일 → 궁극기/폭발 순서로 그립니다.
     drawFighter(state.fighters.enemy, now);
     drawFighter(state.fighters.player, now);
     drawProjectiles(now);
