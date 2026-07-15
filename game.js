@@ -2,7 +2,7 @@
 
 const CONFIG = {
   TILE_SIZE: 64,
-  PLAYER_SIZE: 100,
+  PLAYER_SIZE: 90,
 
   MAX_ENERGY: 20,
   BASIC_DAMAGE: 1,
@@ -31,10 +31,10 @@ const CONFIG = {
 
   ENERGY_BAR_WIDTH: 92,
   ENERGY_BAR_HEIGHT: 8,
-  ENERGY_BAR_OFFSET_Y: 66,
+  ENERGY_BAR_OFFSET_Y: 62,
 
   ULTIMATE_GAUGE_RADIUS: 18,
-  ULTIMATE_GAUGE_OFFSET_Y: 92
+  ULTIMATE_GAUGE_OFFSET_Y: 86
 };
 
 const CHARACTER_CONFIG = {
@@ -312,7 +312,7 @@ function loadImage(path) {
       resolve(null);
     };
 
-    image.src = `${path}?v=6`;
+    image.src = `${path}?v=character-height-90`;
   });
 }
 
@@ -424,6 +424,49 @@ function drawSprite(image, x, y, size, flipX = false, angle = 0, alpha = 1) {
   ctx.restore();
 }
 
+
+function drawCharacterSprite(
+  image,
+  x,
+  y,
+  targetHeight,
+  flipX = false,
+  alpha = 1
+) {
+  const bounds = image.visibleBounds || {
+    x: 0,
+    y: 0,
+    width: image.naturalWidth || image.width,
+    height: image.naturalHeight || image.height
+  };
+
+  const scale = targetHeight / Math.max(1, bounds.height);
+  const width = bounds.width * scale;
+  const height = targetHeight;
+
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.globalAlpha = alpha;
+
+  if (flipX) {
+    ctx.scale(-1, 1);
+  }
+
+  ctx.drawImage(
+    image,
+    bounds.x,
+    bounds.y,
+    bounds.width,
+    bounds.height,
+    -width / 2,
+    -height / 2,
+    width,
+    height
+  );
+
+  ctx.restore();
+}
+
 function drawFallbackFighter(fighter, x, y) {
   ctx.save();
   ctx.translate(x, y);
@@ -478,7 +521,7 @@ function drawFighter(fighter, now) {
   const image = getFighterFrame(fighter, now);
 
   if (image) {
-    drawSprite(
+    drawCharacterSprite(
       image,
       screen.x,
       screen.y,
